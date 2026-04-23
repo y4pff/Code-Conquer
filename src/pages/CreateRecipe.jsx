@@ -6,117 +6,154 @@ export default function CreateRecipe() {
   const [title, setTitle] = useState("");
   const [ingredients, setIngredients] = useState("");
   const [steps, setSteps] = useState("");
-  const [dietaryTag, setDietaryTag] = useState("vegetarian");
+  const [dietaryTag, setDietaryTag] = useState("");
   const [estimatedCost, setEstimatedCost] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const navigate = useNavigate();
 
   async function handleCreate(e) {
     e.preventDefault();
+    setLoading(true);
+    setErrorMessage("");
+    setSuccessMessage("");
 
-    // Get current user
-    const { data: sessionData } = await supabase.auth.getSession();
-    const user = sessionData.session?.user;
+    const { data: userData } = await supabase.auth.getUser();
+    const user = userData.user;
 
     if (!user) {
-      alert("You must be logged in to create a recipe.");
+      setErrorMessage("You must be logged in to create a recipe.");
+      setLoading(false);
       return;
     }
 
     const { error } = await supabase.from("recipes").insert([
       {
-        user_id: user.id,
         title,
         ingredients,
         steps,
-        dietary_tag: dietaryTag,
-        estimated_cost: estimatedCost ? Number(estimatedCost) : null,
+        dietary_tag: dietaryTag || null,
+        estimated_cost: estimatedCost === "" ? null : Number(estimatedCost),
+        user_id: user.id,
       },
     ]);
 
+    setLoading(false);
+
     if (error) {
-      alert(error.message);
-    } else {
-      alert("Recipe created!");
-      navigate("/");
+      setErrorMessage(error.message);
+      return;
     }
+
+    setSuccessMessage("Recipe created successfully. Redirecting...");
+
+    setTimeout(() => {
+      navigate("/");
+    }, 1200);
   }
 
   return (
-    <div style={{ padding: 40 }}>
-      <h1>Create Recipe</h1>
+    <div className="container" style={{ maxWidth: 700 }}>
+      <div className="card">
+        <h1 style={{ marginTop: 0, marginBottom: 8 }}>Create Recipe</h1>
+        <p style={{ marginTop: 0, color: "#666" }}>
+          Share your recipe with other users on the platform.
+        </p>
 
-      <form onSubmit={handleCreate}>
-        <div>
-          <label>Title</label>
-          <br />
+        {errorMessage && (
+          <div
+            style={{
+              marginBottom: 16,
+              padding: "12px 14px",
+              borderRadius: 12,
+              background: "#fff1f0",
+              border: "1px solid #f5c2c0",
+              color: "#b42318",
+              fontSize: "0.95rem",
+            }}
+          >
+            {errorMessage}
+          </div>
+        )}
+
+        {successMessage && (
+          <div
+            style={{
+              marginBottom: 16,
+              padding: "12px 14px",
+              borderRadius: 12,
+              background: "#ecfdf3",
+              border: "1px solid #abefc6",
+              color: "#067647",
+              fontSize: "0.95rem",
+            }}
+          >
+            {successMessage}
+          </div>
+        )}
+
+        <form onSubmit={handleCreate}>
+          <label className="label">Recipe Title</label>
           <input
+            className="input"
+            type="text"
+            placeholder="e.g. Chicken Pasta"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="e.g. Chicken Pasta"
             required
           />
-        </div>
 
-        <br />
-
-        <div>
-          <label>Ingredients</label>
-          <br />
-          <textarea
-            value={ingredients}
-            onChange={(e) => setIngredients(e.target.value)}
-            placeholder="List ingredients..."
-            rows={4}
-            required
-          />
-        </div>
-
-        <br />
-
-        <div>
-          <label>Steps</label>
-          <br />
-          <textarea
-            value={steps}
-            onChange={(e) => setSteps(e.target.value)}
-            placeholder="Write the steps..."
-            rows={5}
-            required
-          />
-        </div>
-
-        <br />
-
-        <div>
-          <label>Dietary Tag</label>
-          <br />
-          <select value={dietaryTag} onChange={(e) => setDietaryTag(e.target.value)}>
+          <label className="label">Dietary Tag</label>
+          <select
+            value={dietaryTag}
+            onChange={(e) => setDietaryTag(e.target.value)}
+          >
+            <option value="">Select a dietary tag</option>
             <option value="vegetarian">Vegetarian</option>
             <option value="vegan">Vegan</option>
             <option value="halal">Halal</option>
             <option value="gluten-free">Gluten-free</option>
           </select>
-        </div>
 
-        <br />
-
-        <div>
-          <label>Estimated Cost (£)</label>
-          <br />
+          <label className="label">Estimated Cost (£)</label>
           <input
+            className="input"
             type="number"
+            step="0.01"
+            placeholder="e.g. 4.50"
             value={estimatedCost}
             onChange={(e) => setEstimatedCost(e.target.value)}
-            placeholder="e.g. 6.50"
-            step="0.01"
           />
-        </div>
 
-        <br />
+          <label className="label">Ingredients</label>
+          <textarea
+            className="textarea"
+            rows={5}
+            placeholder="List all ingredients..."
+            value={ingredients}
+            onChange={(e) => setIngredients(e.target.value)}
+            required
+          />
 
-        <button type="submit">Create</button>
-      </form>
+          <label className="label">Instructions</label>
+          <textarea
+            className="textarea"
+            rows={7}
+            placeholder="Write the cooking steps..."
+            value={steps}
+            onChange={(e) => setSteps(e.target.value)}
+            required
+          />
+
+          <div style={{ marginTop: 16 }}>
+            <button className="btn" type="submit" disabled={loading}>
+              {loading ? "Creating..." : "Create Recipe"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

@@ -6,12 +6,16 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const navigate = useNavigate();
 
   async function handleRegister(e) {
     e.preventDefault();
     setLoading(true);
+    setErrorMessage("");
+    setSuccessMessage("");
 
     const { error } = await supabase.auth.signUp({
       email,
@@ -21,11 +25,15 @@ export default function Register() {
     setLoading(false);
 
     if (error) {
-      alert(error.message);
-    } else {
-      alert("Account created successfully. You can now log in.");
-      navigate("/login");
+      setErrorMessage(error.message);
+      return;
     }
+
+    setSuccessMessage("Account created successfully. Redirecting to login...");
+
+    setTimeout(() => {
+      navigate("/login");
+    }, 1500);
   }
 
   return (
@@ -35,6 +43,40 @@ export default function Register() {
         <p style={{ marginTop: 0, color: "#666" }}>
           Create an account to share recipes and save your favourites.
         </p>
+
+        {/* ERROR MESSAGE */}
+        {errorMessage && (
+          <div
+            style={{
+              marginBottom: 16,
+              padding: "12px 14px",
+              borderRadius: 12,
+              background: "#fff1f0",
+              border: "1px solid #f5c2c0",
+              color: "#b42318",
+              fontSize: "0.95rem",
+            }}
+          >
+            {errorMessage}
+          </div>
+        )}
+
+        {/* SUCCESS MESSAGE */}
+        {successMessage && (
+          <div
+            style={{
+              marginBottom: 16,
+              padding: "12px 14px",
+              borderRadius: 12,
+              background: "#ecfdf3",
+              border: "1px solid #abefc6",
+              color: "#067647",
+              fontSize: "0.95rem",
+            }}
+          >
+            {successMessage}
+          </div>
+        )}
 
         <form onSubmit={handleRegister}>
           <label className="label">Email</label>

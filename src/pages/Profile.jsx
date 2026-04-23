@@ -42,43 +42,94 @@ export default function Profile() {
     load();
   }, []);
 
-  if (loading) return <div className="container"><p>Loading...</p></div>;
+  if (loading) {
+    return (
+      <div className="container">
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   if (!user) {
     return (
-      <div className="container">
-        <h1>Profile</h1>
-        <p>You’re not logged in.</p>
-        <Link className="btn" to="/login">Go to Login</Link>
+      <div className="container" style={{ maxWidth: 600 }}>
+        <div className="card">
+          <h1 style={{ marginTop: 0 }}>Profile</h1>
+          <p style={{ color: "#666" }}>You are not logged in.</p>
+          <Link className="btn" to="/login">
+            Go to Login
+          </Link>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="container">
-      <h1>Profile</h1>
+      <div className="card" style={{ marginBottom: 24 }}>
+        <h1 style={{ marginTop: 0, marginBottom: 8 }}>My Profile</h1>
+        <p style={{ marginTop: 0, color: "#666" }}>
+          Manage your account and view your recipe activity.
+        </p>
 
-      <div className="card">
-        <p><strong>Email:</strong> {user.email}</p>
-        <p><strong>User ID:</strong> {user.id}</p>
-        <p><strong>Favourites:</strong> {favCount}</p>
-        <p><strong>Your recipes:</strong> {myRecipes.length}</p>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+            gap: 16,
+            marginTop: 20,
+          }}
+        >
+          <div className="card">
+            <p style={{ margin: "0 0 8px 0", color: "#666" }}>Email</p>
+            <p style={{ margin: 0, fontWeight: 600 }}>{user.email}</p>
+          </div>
+
+          <div className="card">
+            <p style={{ margin: "0 0 8px 0", color: "#666" }}>Saved Recipes</p>
+            <p style={{ margin: 0, fontWeight: 600 }}>{favCount}</p>
+          </div>
+
+          <div className="card">
+            <p style={{ margin: "0 0 8px 0", color: "#666" }}>Recipes Created</p>
+            <p style={{ margin: 0, fontWeight: 600 }}>{myRecipes.length}</p>
+          </div>
+        </div>
       </div>
 
-      <h2 style={{ marginTop: 20 }}>Your recipes</h2>
+      <div className="card">
+        <h2 style={{ marginTop: 0, marginBottom: 8 }}>Your Recipes</h2>
+        <p style={{ marginTop: 0, color: "#666" }}>
+          View and manage the recipes you have created.
+        </p>
 
-      {myRecipes.length === 0 ? (
-        <p>You haven’t created any recipes yet.</p>
-      ) : (
-        <div className="list">
-          {myRecipes.map((r) => (
-            <div className="listItem" key={r.id}>
-              <Link to={`/recipes/${r.id}`} className="link">{r.title}</Link>
-              <Link to={`/recipes/${r.id}/edit`} className="btnSmall">Edit</Link>
-            </div>
-          ))}
-        </div>
-      )}
+        {myRecipes.length === 0 ? (
+          <div className="card" style={{ marginTop: 16 }}>
+            <p style={{ margin: 0 }}>You have not created any recipes yet.</p>
+          </div>
+        ) : (
+          <div className="list" style={{ marginTop: 16 }}>
+            {myRecipes.map((r) => (
+              <div className="listItem" key={r.id}>
+                <div>
+                  <Link to={`/recipes/${r.id}`} className="link">
+                    {r.title}
+                  </Link>
+                </div>
+
+                <div style={{ display: "flex", gap: 10 }}>
+                  <Link to={`/recipes/${r.id}`} className="btnSmall">
+                    View
+                  </Link>
+                  <Link to={`/recipes/${r.id}/edit`} className="btnSmall">
+                    Edit
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

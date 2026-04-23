@@ -13,14 +13,18 @@ export default function EditRecipe() {
   const [estimatedCost, setEstimatedCost] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     async function loadRecipe() {
+      setErrorMessage("");
+      setSuccessMessage("");
+
       const { data: userData } = await supabase.auth.getUser();
       const user = userData.user;
 
       if (!user) {
-        alert("You must be logged in.");
         navigate("/login");
         return;
       }
@@ -32,14 +36,14 @@ export default function EditRecipe() {
         .single();
 
       if (error) {
-        alert(error.message);
+        setErrorMessage(error.message);
         setLoading(false);
         return;
       }
 
       if (recipe.user_id !== user.id) {
-        alert("You are not allowed to edit this recipe.");
-        navigate(`/recipes/${id}`);
+        setErrorMessage("You are not allowed to edit this recipe.");
+        setLoading(false);
         return;
       }
 
@@ -57,12 +61,14 @@ export default function EditRecipe() {
   async function handleUpdate(e) {
     e.preventDefault();
     setSaving(true);
+    setErrorMessage("");
+    setSuccessMessage("");
 
     const { data: userData } = await supabase.auth.getUser();
     const user = userData.user;
 
     if (!user) {
-      alert("You must be logged in.");
+      setErrorMessage("You must be logged in.");
       setSaving(false);
       return;
     }
@@ -82,10 +88,15 @@ export default function EditRecipe() {
     setSaving(false);
 
     if (error) {
-      alert(error.message);
-    } else {
-      navigate(`/recipes/${id}`);
+      setErrorMessage(error.message);
+      return;
     }
+
+    setSuccessMessage("Recipe updated successfully. Redirecting...");
+
+    setTimeout(() => {
+      navigate(`/recipes/${id}`);
+    }, 1200);
   }
 
   if (loading) {
@@ -103,6 +114,38 @@ export default function EditRecipe() {
         <p style={{ marginTop: 0, color: "#666" }}>
           Update your recipe details below.
         </p>
+
+        {errorMessage && (
+          <div
+            style={{
+              marginBottom: 16,
+              padding: "12px 14px",
+              borderRadius: 12,
+              background: "#fff1f0",
+              border: "1px solid #f5c2c0",
+              color: "#b42318",
+              fontSize: "0.95rem",
+            }}
+          >
+            {errorMessage}
+          </div>
+        )}
+
+        {successMessage && (
+          <div
+            style={{
+              marginBottom: 16,
+              padding: "12px 14px",
+              borderRadius: 12,
+              background: "#ecfdf3",
+              border: "1px solid #abefc6",
+              color: "#067647",
+              fontSize: "0.95rem",
+            }}
+          >
+            {successMessage}
+          </div>
+        )}
 
         <form onSubmit={handleUpdate}>
           <label className="label">Recipe Title</label>

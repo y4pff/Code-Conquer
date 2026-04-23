@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
 
 export default function RecipeDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [recipe, setRecipe] = useState(null);
   const [reviews, setReviews] = useState([]);
@@ -13,8 +14,13 @@ export default function RecipeDetail() {
   const [comment, setComment] = useState("");
 
   const [loading, setLoading] = useState(true);
-  const [isFavourited, setIsFavourited] = useState(false);
   const [favLoading, setFavLoading] = useState(false);
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const [isFavourited, setIsFavourited] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   async function fetchRecipe() {
     const { data, error } = await supabase
@@ -24,7 +30,7 @@ export default function RecipeDetail() {
       .single();
 
     if (error) {
-      alert(error.message);
+      setErrorMessage(error.message);
       return;
     }
 
@@ -39,7 +45,7 @@ export default function RecipeDetail() {
       .order("created_at", { ascending: false });
 
     if (error) {
-      alert(error.message);
+      setErrorMessage(error.message);
       return;
     }
 
@@ -60,7 +66,7 @@ export default function RecipeDetail() {
       .maybeSingle();
 
     if (error) {
-      alert(error.message);
+      setErrorMessage(error.message);
       return;
     }
 
@@ -76,19 +82,26 @@ export default function RecipeDetail() {
   useEffect(() => {
     async function load() {
       setLoading(true);
+      setErrorMessage("");
+      setSuccessMessage("");
+
       await Promise.all([fetchRecipe(), fetchReviews(), fetchUser()]);
+
       setLoading(false);
     }
+
     load();
   }, [id]);
 
   async function handleToggleFavourite() {
     if (!user) {
-      alert("You must be logged in to favourite a recipe.");
+      setErrorMessage("You must be logged in to save a recipe.");
       return;
     }
 
     setFavLoading(true);
+    setErrorMessage("");
+    setSuccessMessage("");
 
     if (isFavourited) {
       const { error } = await supabase
@@ -98,19 +111,24 @@ export default function RecipeDetail() {
         .eq("user_id", user.id);
 
       if (error) {
-        alert(error.message);
+        setErrorMessage(error.message);
       } else {
         setIsFavourited(false);
+        setSuccessMessage("Recipe removed from favourites.");
       }
     } else {
       const { error } = await supabase.from("favourites").insert([
-        { recipe_id: id, user_id: user.id },
+        {
+          recipe_id: id,
+          user_id: user.id,
+        },
       ]);
 
       if (error) {
-        alert(error.message);
+        setErrorMessage(error.message);
       } else {
         setIsFavourited(true);
+        setSuccessMessage("Recipe added to favourites.");
       }
     }
 
@@ -123,24 +141,35 @@ export default function RecipeDetail() {
     );
     if (!confirmDelete) return;
 
+    setDeleteLoading(true);
+    setErrorMessage("");
+    setSuccessMessage("");
+
     const { error } = await supabase.from("recipes").delete().eq("id", id);
 
+    setDeleteLoading(false);
+
     if (error) {
-      alert(error.message);
-    } else {
-      alert("Recipe deleted!");
-      window.location.href = "/";
+      setErrorMessage(error.message);
+      return;
     }
+
+    navigate("/");
   }
 
   async function handleAddReview(e) {
     e.preventDefault();
 
+    setReviewLoading(true);
+    setErrorMessage("");
+    setSuccessMessage("");
+
     const { data: sessionData } = await supabase.auth.getSession();
     const currentUser = sessionData.session?.user;
 
     if (!currentUser) {
-      alert("You must be logged in to leave a review.");
+      setErrorMessage("You must be logged in to leave a review.");
+      setReviewLoading(false);
       return;
     }
 
@@ -152,7 +181,8 @@ export default function RecipeDetail() {
       .maybeSingle();
 
     if (findError) {
-      alert(findError.message);
+      setErrorMessage(findError.message);
+      setReviewLoading(false);
       return;
     }
 
@@ -161,8 +191,12 @@ export default function RecipeDetail() {
     if (existing) {
       const res = await supabase
         .from("reviews")
-        .update({ rating: Number(rating), comment })
+        .update({
+          rating: Number(rating),
+          comment,
+        })
         .eq("id", existing.id);
+
       error = res.error;
     } else {
       const res = await supabase.from("reviews").insert([
@@ -173,22 +207,38 @@ export default function RecipeDetail() {
           comment,
         },
       ]);
+
       error = res.error;
     }
 
     if (error) {
-      alert(error.message);
+      setErrorMessage(error.message);
+      setReviewLoading(false);
       return;
     }
 
     setComment("");
     setRating(5);
     await fetchReviews();
-    alert(existing ? "Review updated!" : "Review added!");
+    setSuccessMessage(existing ? "Review updated successfully." : "Review added successfully.");
+    setReviewLoading(false);
   }
 
-  if (loading) return <div className="container"><p>Loading...</p></div>;
-  if (!recipe) return <div className="container"><p>Recipe not found.</p></div>;
+  if (loading) {
+    return (
+      <div className="container">
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  if (!recipe) {
+    return (
+      <div className="container">
+        <p>Recipe not found.</p>
+      </div>
+    );
+  }
 
   const avg =
     reviews.length === 0
@@ -199,12 +249,58 @@ export default function RecipeDetail() {
 
   return (
     <div className="container">
+      {(errorMessage || successMessage) && (
+        <div style={{ marginBottom: 20 }}>
+          {errorMessage && (
+            <div
+              style={{
+                marginBottom: 12,
+                padding: "12px 14px",
+                borderRadius: 12,
+                background: "#fff1f0",
+                border: "1px solid #f5c2c0",
+                color: "#b42318",
+                fontSize: "0.95rem",
+              }}
+            >
+              {errorMessage}
+            </div>
+          )}
+
+          {successMessage && (
+            <div
+              style={{
+                padding: "12px 14px",
+                borderRadius: 12,
+                background: "#ecfdf3",
+                border: "1px solid #abefc6",
+                color: "#067647",
+                fontSize: "0.95rem",
+              }}
+            >
+              {successMessage}
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="card" style={{ marginBottom: 20 }}>
         <h1 style={{ marginTop: 0 }}>{recipe.title}</h1>
 
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 16 }}>
-          <button className="btnSmall" onClick={handleToggleFavourite} disabled={favLoading}>
-            {favLoading ? "..." : isFavourited ? "★ Saved" : "☆ Save"}
+        <div
+          style={{
+            display: "flex",
+            gap: 10,
+            flexWrap: "wrap",
+            marginBottom: 16,
+          }}
+        >
+          <button
+            className="btnSmall"
+            onClick={handleToggleFavourite}
+            disabled={favLoading}
+          >
+            {favLoading ? "Updating..." : isFavourited ? "★ Saved" : "☆ Save"}
           </button>
 
           {user && recipe.user_id === user.id && (
@@ -212,8 +308,13 @@ export default function RecipeDetail() {
               <Link className="btnSmall" to={`/recipes/${id}/edit`}>
                 Edit Recipe
               </Link>
-              <button className="btnDanger" type="button" onClick={handleDeleteRecipe}>
-                Delete Recipe
+              <button
+                className="btnDanger"
+                type="button"
+                onClick={handleDeleteRecipe}
+                disabled={deleteLoading}
+              >
+                {deleteLoading ? "Deleting..." : "Delete Recipe"}
               </button>
             </>
           )}
@@ -230,7 +331,9 @@ export default function RecipeDetail() {
 
         <p style={{ margin: 0 }}>
           <strong>Average Rating:</strong>{" "}
-          {avg ? `${avg} / 5 (${reviews.length} review${reviews.length === 1 ? "" : "s"})` : "No ratings yet"}
+          {avg
+            ? `${avg} / 5 (${reviews.length} review${reviews.length === 1 ? "" : "s"})`
+            : "No ratings yet"}
         </p>
       </div>
 
@@ -268,8 +371,8 @@ export default function RecipeDetail() {
             />
 
             <div style={{ marginTop: 12 }}>
-              <button className="btn" type="submit">
-                Submit Review
+              <button className="btn" type="submit" disabled={reviewLoading}>
+                {reviewLoading ? "Saving Review..." : "Submit Review"}
               </button>
             </div>
           </form>
