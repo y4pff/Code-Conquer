@@ -1,7 +1,21 @@
 import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
+import { useEffect, useState } from "react";
 
 export default function NavBar() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setUser(data.session?.user || null);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+    });
+
+    return () => listener.subscription.unsubscribe();
+  }, []);
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -10,26 +24,31 @@ export default function NavBar() {
 
   return (
     <nav className="navbar">
-
       <div className="navLeft">
-        <Link className="logo" to="/">
-          RecipeHub
-        </Link>
-
+        <Link className="logo" to="/">RecipeHub</Link>
         <div className="navLinks">
           <Link to="/">Home</Link>
-          <Link to="/create">Add Recipe</Link>
-          <Link to="/favourites">Favourites</Link>
-          <Link to="/profile">Profile</Link>
+          {user && <Link to="/create">Add Recipe</Link>}
+          {user && <Link to="/favourites">Favourites</Link>}
+          {user && <Link to="/profile">Profile</Link>}
         </div>
       </div>
 
       <div className="navRight">
-        <button className="btnSmall" onClick={handleLogout}>
-          Logout
-        </button>
+        {user ? (
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <span style={{ fontSize: "0.85rem", color: "#555" }}>
+              {user.email}
+            </span>
+            <button className="btnSmall" onClick={handleLogout}>Logout</button>
+          </div>
+        ) : (
+          <div style={{ display: "flex", gap: 8 }}>
+            <Link className="btnSmall" to="/login">Login</Link>
+            <Link className="btnSmall" to="/register">Register</Link>
+          </div>
+        )}
       </div>
-
     </nav>
   );
 }

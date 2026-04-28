@@ -51,11 +51,6 @@ export default function Home() {
     };
   }, [filterTag, sortBy]);
 
-  async function handleLogout() {
-    await supabase.auth.signOut();
-    window.location.href = "/";
-  }
-
   return (
     <div className="container">
       <div style={{ marginBottom: 24 }}>
@@ -65,42 +60,6 @@ export default function Home() {
         </p>
       </div>
 
-      <div className="card" style={{ marginBottom: 24 }}>
-        <div className="topBar">
-          <div>
-            {user ? (
-              <p style={{ margin: 0 }}>
-                Logged in as <strong>{user.email}</strong>
-              </p>
-            ) : (
-              <p style={{ margin: 0 }}>You are not logged in.</p>
-            )}
-          </div>
-
-          <div className="topActions">
-            {user ? (
-              <>
-                <Link className="btnSmall" to="/create">
-                  + Add Recipe
-                </Link>
-                <button className="btnSmall" onClick={handleLogout}>
-                  Logout
-                </button>
-              </>
-            ) : (
-              <>
-                <Link className="btnSmall" to="/login">
-                  Login
-                </Link>
-                <Link className="btnSmall" to="/register">
-                  Register
-                </Link>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
       <div
         className="card"
         style={{
@@ -108,34 +67,39 @@ export default function Home() {
           display: "flex",
           gap: 20,
           flexWrap: "wrap",
-          alignItems: "center",
+          alignItems: "flex-end",
+          justifyContent: "space-between",
         }}
       >
-        <div>
-          <label className="label" style={{ marginTop: 0 }}>
-            Filter
-          </label>
-          <select
-            value={filterTag}
-            onChange={(e) => setFilterTag(e.target.value)}
-          >
-            <option value="all">All</option>
-            <option value="vegetarian">Vegetarian</option>
-            <option value="vegan">Vegan</option>
-            <option value="halal">Halal</option>
-            <option value="gluten-free">Gluten-free</option>
-          </select>
+        <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+          <div>
+            <label className="label" style={{ marginTop: 0 }}>Filter</label>
+            <select value={filterTag} onChange={(e) => setFilterTag(e.target.value)}>
+              <option value="all">All</option>
+              <option value="vegetarian">Vegetarian</option>
+              <option value="vegan">Vegan</option>
+              <option value="halal">Halal</option>
+              <option value="gluten-free">Gluten-free</option>
+              <option value="keto">Keto</option>
+              <option value="dairy-free">Dairy-free</option>
+              <option value="pescatarian">Pescatarian</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="label" style={{ marginTop: 0 }}>Sort</label>
+            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+              <option value="newest">Newest</option>
+              <option value="top">Top Rated</option>
+            </select>
+          </div>
         </div>
 
-        <div>
-          <label className="label" style={{ marginTop: 0 }}>
-            Sort
-          </label>
-          <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-            <option value="newest">Newest</option>
-            <option value="top">Top Rated</option>
-          </select>
-        </div>
+        {user && (
+          <Link className="btn" to="/create">
+            + Add Recipe
+          </Link>
+        )}
       </div>
 
       <h2 style={{ marginBottom: 16 }}>Latest Recipes</h2>
@@ -144,7 +108,7 @@ export default function Home() {
         <p>Loading...</p>
       ) : recipes.length === 0 ? (
         <div className="card">
-          <p style={{ margin: 0 }}>No recipes yet. Be the first to add one.</p>
+          <p style={{ margin: 0 }}>No recipes found.</p>
         </div>
       ) : (
         <div className="recipeGrid">
@@ -155,9 +119,7 @@ export default function Home() {
               </div>
 
               <h3 style={{ marginTop: 0, marginBottom: 10 }}>
-                <Link className="link" to={`/recipes/${r.id}`}>
-                  {r.title}
-                </Link>
+                {r.title}
               </h3>
 
               <p className="recipeMeta">
