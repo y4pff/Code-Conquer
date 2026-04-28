@@ -16,6 +16,10 @@ export default function Home() {
 
     if (sortBy === "top") {
       query = query.order("avg_rating", { ascending: false });
+    } else if (sortBy === "price_low") {
+      query = query.order("estimated_cost", { ascending: true });
+    } else if (sortBy === "price_high") {
+      query = query.order("estimated_cost", { ascending: false });
     } else {
       query = query.order("created_at", { ascending: false });
     }
@@ -91,6 +95,8 @@ export default function Home() {
             <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
               <option value="newest">Newest</option>
               <option value="top">Top Rated</option>
+              <option value="price_low">Price: Low to High</option>
+              <option value="price_high">Price: High to Low</option>
             </select>
           </div>
         </div>
@@ -119,7 +125,9 @@ export default function Home() {
               </div>
 
               <h3 style={{ marginTop: 0, marginBottom: 10 }}>
-                {r.title}
+                <Link className="link" to={`/recipes/${r.id}`}>
+                  {r.title}
+                </Link>
               </h3>
 
               <p className="recipeMeta">
