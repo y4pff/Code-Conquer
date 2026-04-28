@@ -20,6 +20,24 @@ export default function CreateRecipe() {
     setErrorMessage("");
     setSuccessMessage("");
 
+    if (!title.trim()) {
+      setErrorMessage("Please enter a recipe title.");
+      setLoading(false);
+      return;
+    }
+
+    if (!ingredients.trim()) {
+      setErrorMessage("Please enter the ingredients.");
+      setLoading(false);
+      return;
+    }
+
+    if (!steps.trim()) {
+      setErrorMessage("Please enter the cooking instructions.");
+      setLoading(false);
+      return;
+    }
+
     const { data: userData } = await supabase.auth.getUser();
     const user = userData.user;
 
@@ -63,33 +81,29 @@ export default function CreateRecipe() {
         </p>
 
         {errorMessage && (
-          <div
-            style={{
-              marginBottom: 16,
-              padding: "12px 14px",
-              borderRadius: 12,
-              background: "#fff1f0",
-              border: "1px solid #f5c2c0",
-              color: "#b42318",
-              fontSize: "0.95rem",
-            }}
-          >
+          <div style={{
+            marginBottom: 16,
+            padding: "12px 14px",
+            borderRadius: 12,
+            background: "#fff1f0",
+            border: "1px solid #f5c2c0",
+            color: "#b42318",
+            fontSize: "0.95rem",
+          }}>
             {errorMessage}
           </div>
         )}
 
         {successMessage && (
-          <div
-            style={{
-              marginBottom: 16,
-              padding: "12px 14px",
-              borderRadius: 12,
-              background: "#ecfdf3",
-              border: "1px solid #abefc6",
-              color: "#067647",
-              fontSize: "0.95rem",
-            }}
-          >
+          <div style={{
+            marginBottom: 16,
+            padding: "12px 14px",
+            borderRadius: 12,
+            background: "#ecfdf3",
+            border: "1px solid #abefc6",
+            color: "#067647",
+            fontSize: "0.95rem",
+          }}>
             {successMessage}
           </div>
         )}
@@ -115,6 +129,9 @@ export default function CreateRecipe() {
             <option value="vegan">Vegan</option>
             <option value="halal">Halal</option>
             <option value="gluten-free">Gluten-free</option>
+            <option value="keto">Keto</option>
+            <option value="dairy-free">Dairy-free</option>
+            <option value="pescatarian">Pescatarian</option>
           </select>
 
           <label className="label">Estimated Cost (£)</label>
@@ -122,6 +139,7 @@ export default function CreateRecipe() {
             className="input"
             type="number"
             step="0.01"
+            min="0"
             placeholder="e.g. 4.50"
             value={estimatedCost}
             onChange={(e) => setEstimatedCost(e.target.value)}
@@ -131,7 +149,7 @@ export default function CreateRecipe() {
           <textarea
             className="textarea"
             rows={5}
-            placeholder="List all ingredients..."
+            placeholder="List all ingredients, one per line..."
             value={ingredients}
             onChange={(e) => setIngredients(e.target.value)}
             required
@@ -141,15 +159,23 @@ export default function CreateRecipe() {
           <textarea
             className="textarea"
             rows={7}
-            placeholder="Write the cooking steps..."
+            placeholder="Write the cooking steps, one per line..."
             value={steps}
             onChange={(e) => setSteps(e.target.value)}
             required
           />
 
-          <div style={{ marginTop: 16 }}>
+          <div style={{ marginTop: 16, display: "flex", gap: 12 }}>
             <button className="btn" type="submit" disabled={loading}>
               {loading ? "Creating..." : "Create Recipe"}
+            </button>
+            <button
+              className="btnSmall"
+              type="button"
+              onClick={() => navigate("/")}
+              style={{ background: "#f5f5f5", color: "#333" }}
+            >
+              Cancel
             </button>
           </div>
         </form>
