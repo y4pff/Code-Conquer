@@ -50,12 +50,23 @@ export default function Register() {
   }
 
   return (
-    <div className="container" style={{ maxWidth: 500 }}>
-      <div className="card">
-        <h1 style={{ marginTop: 0, marginBottom: 8 }}>Register</h1>
-        <p style={{ marginTop: 0, color: "#666" }}>
-          Create an account to share recipes and save your favourites.
-        </p>
+    <div style={{
+      minHeight: "80vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "24px",
+    }}>
+      <div className="card" style={{ width: "100%", maxWidth: 420 }}>
+
+        <div style={{ textAlign: "center", marginBottom: 24 }}>
+          <h1 style={{ marginTop: 0, marginBottom: 8, fontSize: "1.8rem" }}>
+            Create Account
+          </h1>
+          <p style={{ margin: 0, color: "#666" }}>
+            Join RecipeHub to share and discover recipes.
+          </p>
+        </div>
 
         {errorMessage && (
           <div style={{
@@ -90,7 +101,7 @@ export default function Register() {
           <input
             className="input"
             type="email"
-            placeholder="Enter your email"
+            placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -116,14 +127,19 @@ export default function Register() {
             required
           />
 
-          <div style={{ marginTop: 16 }}>
-            <button className="btn" type="submit" disabled={loading}>
+          <div style={{ marginTop: 20 }}>
+            <button
+              className="btn"
+              type="submit"
+              disabled={loading}
+              style={{ width: "100%" }}
+            >
               {loading ? "Creating account..." : "Register"}
             </button>
           </div>
         </form>
 
-        <p style={{ marginTop: 18, marginBottom: 0 }}>
+        <p style={{ marginTop: 18, marginBottom: 0, textAlign: "center" }}>
           Already have an account?{" "}
           <Link className="link" to="/login">
             Login here

@@ -31,35 +31,44 @@ export default function Login() {
   }
 
   return (
-    <div className="container" style={{ maxWidth: 500 }}>
-      <div className="card">
-        <h1 style={{ marginTop: 0, marginBottom: 8 }}>Login</h1>
-        <p style={{ marginTop: 0, color: "#666" }}>
-          Sign in to create recipes, leave reviews, and save favourites.
-        </p>
+    <div style={{
+      minHeight: "80vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "24px",
+    }}>
+      <div className="card" style={{ width: "100%", maxWidth: 420 }}>
+
+        <div style={{ textAlign: "center", marginBottom: 24 }}>
+          <h1 style={{ marginTop: 0, marginBottom: 8, fontSize: "1.8rem" }}>
+            Welcome Back
+          </h1>
+          <p style={{ margin: 0, color: "#666" }}>
+            Sign in to discover and share recipes.
+          </p>
+        </div>
 
         {errorMessage && (
-          <div
-            style={{
-              marginBottom: 16,
-              padding: "12px 14px",
-              borderRadius: 12,
-              background: "#fff1f0",
-              border: "1px solid #f5c2c0",
-              color: "#b42318",
-              fontSize: "0.95rem",
-            }}
-          >
+          <div style={{
+            marginBottom: 16,
+            padding: "12px 14px",
+            borderRadius: 12,
+            background: "#fff1f0",
+            border: "1px solid #f5c2c0",
+            color: "#b42318",
+            fontSize: "0.95rem",
+          }}>
             {errorMessage}
           </div>
         )}
 
         <form onSubmit={handleLogin}>
-          <label className="label">Email</label>
+          <label className="label">Email Address</label>
           <input
             className="input"
             type="email"
-            placeholder="Enter your email"
+            placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -75,15 +84,20 @@ export default function Login() {
             required
           />
 
-          <div style={{ marginTop: 16 }}>
-            <button className="btn" type="submit" disabled={loading}>
+          <div style={{ marginTop: 20 }}>
+            <button
+              className="btn"
+              type="submit"
+              disabled={loading}
+              style={{ width: "100%" }}
+            >
               {loading ? "Logging in..." : "Login"}
             </button>
           </div>
         </form>
 
-        <p style={{ marginTop: 18, marginBottom: 0 }}>
-          Don’t have an account?{" "}
+        <p style={{ marginTop: 18, marginBottom: 0, textAlign: "center" }}>
+          Don't have an account?{" "}
           <Link className="link" to="/register">
             Register here
           </Link>
