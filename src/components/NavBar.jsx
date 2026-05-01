@@ -4,18 +4,41 @@ import { useEffect, useState } from "react";
 
 export default function NavBar() {
   const [user, setUser] = useState(null);
+  const [username, setUsername] = useState("");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      setUser(data.session?.user || null);
+      const currentUser = data.session?.user || null;
+      setUser(currentUser);
+      if (currentUser) {
+        fetchUsername(currentUser.id);
+      }
     });
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null);
+      const currentUser = session?.user || null;
+      setUser(currentUser);
+      if (currentUser) {
+        fetchUsername(currentUser.id);
+      } else {
+        setUsername("");
+      }
     });
 
     return () => listener.subscription.unsubscribe();
   }, []);
+
+  async function fetchUsername(userId) {
+    const { data } = await supabase
+      .from("profiles")
+      .select("username")
+      .eq("id", userId)
+      .single();
+
+    if (data && data.username) {
+      setUsername(data.username);
+    }
+  }
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -38,7 +61,7 @@ export default function NavBar() {
         {user ? (
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <span style={{ fontSize: "0.85rem", color: "#555" }}>
-              {user.email}
+              {username ? username : user.email}
             </span>
             <button className="btnSmall" onClick={handleLogout}>Logout</button>
           </div>
