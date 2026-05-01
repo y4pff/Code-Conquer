@@ -5,6 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -16,6 +17,18 @@ export default function Register() {
     setLoading(true);
     setErrorMessage("");
     setSuccessMessage("");
+
+    if (password !== confirmPassword) {
+      setErrorMessage("Passwords do not match. Please try again.");
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 6) {
+      setErrorMessage("Password must be at least 6 characters.");
+      setLoading(false);
+      return;
+    }
 
     const { error } = await supabase.auth.signUp({
       email,
@@ -44,36 +57,30 @@ export default function Register() {
           Create an account to share recipes and save your favourites.
         </p>
 
-        {/* ERROR MESSAGE */}
         {errorMessage && (
-          <div
-            style={{
-              marginBottom: 16,
-              padding: "12px 14px",
-              borderRadius: 12,
-              background: "#fff1f0",
-              border: "1px solid #f5c2c0",
-              color: "#b42318",
-              fontSize: "0.95rem",
-            }}
-          >
+          <div style={{
+            marginBottom: 16,
+            padding: "12px 14px",
+            borderRadius: 12,
+            background: "#fff1f0",
+            border: "1px solid #f5c2c0",
+            color: "#b42318",
+            fontSize: "0.95rem",
+          }}>
             {errorMessage}
           </div>
         )}
 
-        {/* SUCCESS MESSAGE */}
         {successMessage && (
-          <div
-            style={{
-              marginBottom: 16,
-              padding: "12px 14px",
-              borderRadius: 12,
-              background: "#ecfdf3",
-              border: "1px solid #abefc6",
-              color: "#067647",
-              fontSize: "0.95rem",
-            }}
-          >
+          <div style={{
+            marginBottom: 16,
+            padding: "12px 14px",
+            borderRadius: 12,
+            background: "#ecfdf3",
+            border: "1px solid #abefc6",
+            color: "#067647",
+            fontSize: "0.95rem",
+          }}>
             {successMessage}
           </div>
         )}
@@ -96,6 +103,16 @@ export default function Register() {
             placeholder="Create a password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+
+          <label className="label">Confirm Password</label>
+          <input
+            className="input"
+            type="password"
+            placeholder="Re-enter your password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
             required
           />
 
