@@ -61,11 +61,11 @@ export default function RecipeDetail() {
     setSuccessMessage("");
     if (isFavourited) {
       const { error } = await supabase.from("favourites").delete().eq("recipe_id", id).eq("user_id", user.id);
-      if (error) { setErrorMessage(error.message); } 
+      if (error) { setErrorMessage(error.message); }
       else { setIsFavourited(false); setErrorMessage("Recipe removed from favourites."); }
     } else {
       const { error } = await supabase.from("favourites").insert([{ recipe_id: id, user_id: user.id }]);
-      if (error) { setErrorMessage(error.message); } 
+      if (error) { setErrorMessage(error.message); }
       else { setIsFavourited(true); setSuccessMessage("Recipe added to favourites."); }
     }
     setFavLoading(false);
@@ -113,9 +113,12 @@ export default function RecipeDetail() {
   if (!recipe) return <div className="container"><p>Recipe not found.</p></div>;
 
   const avg = reviews.length === 0 ? null : (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1);
+  const twitterUrl = "https://twitter.com/intent/tweet?text=Check out: " + recipe.title + "&url=" + window.location.href;
+  const facebookUrl = "https://www.facebook.com/sharer/sharer.php?u=" + window.location.href;
+  const whatsappUrl = "https://wa.me/?text=Check out this recipe: " + recipe.title + " " + window.location.href;
 
   return (
-    <div className="container" style={{ maxWidth: 800 }}>
+    <div className="container" style={{ maxWidth: 1000 }}>
 
       <div style={{ marginBottom: 16 }}>
         <button className="btnSmall" onClick={() => navigate("/")}>Back to Recipes</button>
@@ -136,55 +139,63 @@ export default function RecipeDetail() {
         </div>
       )}
 
-      <div className="card" style={{ marginBottom: 20 }}>
-        {recipe.image_url ? (
-          <img src={recipe.image_url} alt={recipe.title} style={{ width: "100%", height: 300, objectFit: "cover", borderRadius: 12, marginBottom: 16 }} />
-        ) : (
-          <div style={{ width: "100%", height: 200, borderRadius: 12, background: "#fff1e6", marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "3rem" }}>
-            🍽️
-          </div>
-        )}
-
-        <div style={{ marginBottom: 12 }}>
-          <span className="badge">{recipe.dietary_tag || "No tag"}</span>
-        </div>
-
-        <h1 style={{ marginTop: 0, marginBottom: 16 }}>{recipe.title}</h1>
-
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 20 }}>
-          <button className="btnSmall" onClick={handleToggleFavourite} disabled={favLoading} style={{ background: isFavourited ? "#fff3e8" : "", borderColor: isFavourited ? "#e07b2a" : "", color: isFavourited ? "#e07b2a" : "" }}>
-            {favLoading ? "Updating..." : isFavourited ? "★ Saved" : "☆ Save"}
-          </button>
-          {user && recipe.user_id === user.id && (
-            <>
-              <Link className="btnSmall" to={`/recipes/${id}/edit`}>Edit Recipe</Link>
-              <button className="btnDanger" type="button" onClick={handleDeleteRecipe} disabled={deleteLoading}>
-                {deleteLoading ? "Deleting..." : "Delete Recipe"}
-              </button>
-            </>
+      {/* top section - image left, info right */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
+        <div>
+          {recipe.image_url ? (
+            <img src={recipe.image_url} alt={recipe.title} style={{ width: "100%", height: 320, objectFit: "cover", borderRadius: 16 }} />
+          ) : (
+            <div style={{ width: "100%", height: 320, borderRadius: 16, background: "#fff1e6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "4rem" }}>
+              🍽️
+            </div>
           )}
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <div style={{ background: "#fff8f2", borderRadius: 10, padding: "10px 14px" }}>
-            <p style={{ margin: "0 0 4px 0", fontSize: "0.85rem", color: "#888" }}>Estimated Cost</p>
-            <p style={{ margin: 0, fontWeight: 700, fontSize: "1.1rem" }}>{recipe.estimated_cost !== null ? `£${recipe.estimated_cost}` : "N/A"}</p>
+        <div className="card">
+          <div style={{ marginBottom: 12 }}>
+            <span className="badge">{recipe.dietary_tag || "No tag"}</span>
           </div>
-          <div style={{ background: "#fff8f2", borderRadius: 10, padding: "10px 14px" }}>
-            <p style={{ margin: "0 0 4px 0", fontSize: "0.85rem", color: "#888" }}>Average Rating</p>
-            <p style={{ margin: 0, fontWeight: 700, fontSize: "1.1rem" }}>{avg ? `${avg} / 5 (${reviews.length} review${reviews.length === 1 ? "" : "s"})` : "No ratings yet"}</p>
+
+          <h1 style={{ marginTop: 0, marginBottom: 16 }}>{recipe.title}</h1>
+
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ background: "#fff8f2", borderRadius: 10, padding: "10px 14px", marginBottom: 12 }}>
+              <p style={{ margin: "0 0 4px 0", fontSize: "0.85rem", color: "#888" }}>Estimated Cost</p>
+              <p style={{ margin: 0, fontWeight: 700, fontSize: "1.1rem" }}>{recipe.estimated_cost !== null ? `£${recipe.estimated_cost}` : "N/A"}</p>
+            </div>
+            <div style={{ background: "#fff8f2", borderRadius: 10, padding: "10px 14px" }}>
+              <p style={{ margin: "0 0 4px 0", fontSize: "0.85rem", color: "#888" }}>Average Rating</p>
+              <p style={{ margin: 0, fontWeight: 700, fontSize: "1.1rem" }}>{avg ? `${avg} / 5 (${reviews.length} review${reviews.length === 1 ? "" : "s"})` : "No ratings yet"}</p>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <button className="btnSmall" onClick={handleToggleFavourite} disabled={favLoading} style={{ background: isFavourited ? "#fff3e8" : "", borderColor: isFavourited ? "#e07b2a" : "", color: isFavourited ? "#e07b2a" : "" }}>
+              {favLoading ? "Updating..." : isFavourited ? "★ Saved" : "☆ Save"}
+            </button>
+            {user && recipe.user_id === user.id && (
+              <>
+                <Link className="btnSmall" to={`/recipes/${id}/edit`}>Edit Recipe</Link>
+                <button className="btnDanger" type="button" onClick={handleDeleteRecipe} disabled={deleteLoading}>
+                  {deleteLoading ? "Deleting..." : "Delete Recipe"}
+                </button>
+              </>
+            )}
           </div>
         </div>
       </div>
 
-      <div className="card" style={{ marginBottom: 20 }}>
-        <h2 style={{ marginTop: 0 }}>Ingredients</h2>
-        <p style={{ whiteSpace: "pre-line", lineHeight: 1.8 }}>{recipe.ingredients}</p>
-      </div>
+      {/* ingredients and instructions side by side */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 20 }}>
+        <div className="card">
+          <h2 style={{ marginTop: 0 }}>Ingredients</h2>
+          <p style={{ whiteSpace: "pre-line", lineHeight: 1.8 }}>{recipe.ingredients}</p>
+        </div>
 
-      <div className="card" style={{ marginBottom: 20 }}>
-        <h2 style={{ marginTop: 0 }}>Instructions</h2>
-        <p style={{ whiteSpace: "pre-line", lineHeight: 1.8 }}>{recipe.steps}</p>
+        <div className="card">
+          <h2 style={{ marginTop: 0 }}>Instructions</h2>
+          <p style={{ whiteSpace: "pre-line", lineHeight: 1.8 }}>{recipe.steps}</p>
+        </div>
       </div>
 
       {recipe.video_url && (
@@ -194,6 +205,16 @@ export default function RecipeDetail() {
           <a href={recipe.video_url} target="_blank" rel="noreferrer" className="btn">Watch on YouTube</a>
         </div>
       )}
+
+      <div className="card" style={{ marginBottom: 20 }}>
+        <h2 style={{ marginTop: 0 }}>Share this Recipe</h2>
+        <p style={{ marginTop: 0, color: "#666" }}>Share this recipe with your friends and family.</p>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <a href={twitterUrl} target="_blank" rel="noreferrer" className="btnSmall" style={{ background: "#1DA1F2", color: "white", border: "none" }}>Share on X</a>
+          <a href={facebookUrl} target="_blank" rel="noreferrer" className="btnSmall" style={{ background: "#1877F2", color: "white", border: "none" }}>Share on Facebook</a>
+          <a href={whatsappUrl} target="_blank" rel="noreferrer" className="btnSmall" style={{ background: "#25D366", color: "white", border: "none" }}>Share on WhatsApp</a>
+        </div>
+      </div>
 
       <div className="card">
         <h2 style={{ marginTop: 0 }}>Reviews</h2>
