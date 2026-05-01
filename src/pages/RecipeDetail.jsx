@@ -17,11 +17,25 @@ export default function RecipeDetail() {
   const [isFavourited, setIsFavourited] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [posterName, setPosterName] = useState("");
 
   async function fetchRecipe() {
     const { data, error } = await supabase.from("recipes").select("*").eq("id", id).single();
     if (error) { setErrorMessage(error.message); return; }
     setRecipe(data);
+
+    // fetch the username of whoever posted the recipe
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("username")
+      .eq("id", data.user_id)
+      .single();
+
+    if (profile && profile.username) {
+      setPosterName(profile.username);
+    } else {
+      setPosterName("Anonymous");
+    }
   }
 
   async function fetchReviews() {
@@ -163,9 +177,13 @@ export default function RecipeDetail() {
               <p style={{ margin: "0 0 4px 0", fontSize: "0.85rem", color: "#888" }}>Estimated Cost</p>
               <p style={{ margin: 0, fontWeight: 700, fontSize: "1.1rem" }}>{recipe.estimated_cost !== null ? `£${recipe.estimated_cost}` : "N/A"}</p>
             </div>
-            <div style={{ background: "#fff8f2", borderRadius: 10, padding: "10px 14px" }}>
+            <div style={{ background: "#fff8f2", borderRadius: 10, padding: "10px 14px", marginBottom: 12 }}>
               <p style={{ margin: "0 0 4px 0", fontSize: "0.85rem", color: "#888" }}>Average Rating</p>
               <p style={{ margin: 0, fontWeight: 700, fontSize: "1.1rem" }}>{avg ? `${avg} / 5 (${reviews.length} review${reviews.length === 1 ? "" : "s"})` : "No ratings yet"}</p>
+            </div>
+            <div style={{ background: "#fff8f2", borderRadius: 10, padding: "10px 14px" }}>
+              <p style={{ margin: "0 0 4px 0", fontSize: "0.85rem", color: "#888" }}>Posted by</p>
+              <p style={{ margin: 0, fontWeight: 700, fontSize: "1.1rem" }}>{posterName}</p>
             </div>
           </div>
 
