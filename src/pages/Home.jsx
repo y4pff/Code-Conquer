@@ -8,6 +8,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [filterTag, setFilterTag] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
+  const [searchTerm, setSearchTerm] = useState("");
 
   async function fetchRecipes() {
     setLoading(true);
@@ -55,6 +56,16 @@ export default function Home() {
     };
   }, [filterTag, sortBy]);
 
+  // filter recipes by search term on the frontend
+  const filteredRecipes = recipes.filter((r) => {
+    if (!searchTerm.trim()) return true;
+    const term = searchTerm.toLowerCase();
+    return (
+      r.title?.toLowerCase().includes(term) ||
+      r.ingredients?.toLowerCase().includes(term)
+    );
+  });
+
   return (
     <div className="container">
       <div style={{ marginBottom: 24 }}>
@@ -62,6 +73,17 @@ export default function Home() {
         <p className="pageSubtitle">
           Explore recipes, save favourites, and share your own meals.
         </p>
+      </div>
+
+      <div className="card" style={{ marginBottom: 16 }}>
+        <label className="label" style={{ marginTop: 0 }}>Search</label>
+        <input
+          className="input"
+          type="text"
+          placeholder="Search by recipe name or ingredient..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
       </div>
 
       <div
@@ -112,13 +134,13 @@ export default function Home() {
 
       {loading ? (
         <p>Loading...</p>
-      ) : recipes.length === 0 ? (
+      ) : filteredRecipes.length === 0 ? (
         <div className="card">
           <p style={{ margin: 0 }}>No recipes found.</p>
         </div>
       ) : (
         <div className="recipeGrid">
-          {recipes.map((r) => (
+          {filteredRecipes.map((r) => (
             <div className="recipeCard" key={r.id}>
 
               {r.image_url ? (
