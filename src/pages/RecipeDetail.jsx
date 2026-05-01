@@ -114,7 +114,7 @@ export default function RecipeDetail() {
         setErrorMessage(error.message);
       } else {
         setIsFavourited(false);
-        setSuccessMessage("Recipe removed from favourites.");
+        setErrorMessage("Recipe removed from favourites.");
       }
     } else {
       const { error } = await supabase.from("favourites").insert([
@@ -191,12 +191,8 @@ export default function RecipeDetail() {
     if (existing) {
       const res = await supabase
         .from("reviews")
-        .update({
-          rating: Number(rating),
-          comment,
-        })
+        .update({ rating: Number(rating), comment })
         .eq("id", existing.id);
-
       error = res.error;
     } else {
       const res = await supabase.from("reviews").insert([
@@ -207,7 +203,6 @@ export default function RecipeDetail() {
           comment,
         },
       ]);
-
       error = res.error;
     }
 
@@ -248,36 +243,41 @@ export default function RecipeDetail() {
         ).toFixed(1);
 
   return (
-    <div className="container">
+    <div className="container" style={{ maxWidth: 800 }}>
+
+      <div style={{ marginBottom: 16 }}>
+        <button
+          className="btnSmall"
+          onClick={() => navigate("/")}
+        >
+          ← Back to Recipes
+        </button>
+      </div>
+
       {(errorMessage || successMessage) && (
         <div style={{ marginBottom: 20 }}>
           {errorMessage && (
-            <div
-              style={{
-                marginBottom: 12,
-                padding: "12px 14px",
-                borderRadius: 12,
-                background: "#fff1f0",
-                border: "1px solid #f5c2c0",
-                color: "#b42318",
-                fontSize: "0.95rem",
-              }}
-            >
+            <div style={{
+              marginBottom: 12,
+              padding: "12px 14px",
+              borderRadius: 12,
+              background: "#fff1f0",
+              border: "1px solid #f5c2c0",
+              color: "#b42318",
+              fontSize: "0.95rem",
+            }}>
               {errorMessage}
             </div>
           )}
-
           {successMessage && (
-            <div
-              style={{
-                padding: "12px 14px",
-                borderRadius: 12,
-                background: "#ecfdf3",
-                border: "1px solid #abefc6",
-                color: "#067647",
-                fontSize: "0.95rem",
-              }}
-            >
+            <div style={{
+              padding: "12px 14px",
+              borderRadius: 12,
+              background: "#ecfdf3",
+              border: "1px solid #abefc6",
+              color: "#067647",
+              fontSize: "0.95rem",
+            }}>
               {successMessage}
             </div>
           )}
@@ -285,20 +285,22 @@ export default function RecipeDetail() {
       )}
 
       <div className="card" style={{ marginBottom: 20 }}>
-        <h1 style={{ marginTop: 0 }}>{recipe.title}</h1>
+        <div style={{ marginBottom: 12 }}>
+          <span className="badge">{recipe.dietary_tag || "No tag"}</span>
+        </div>
 
-        <div
-          style={{
-            display: "flex",
-            gap: 10,
-            flexWrap: "wrap",
-            marginBottom: 16,
-          }}
-        >
+        <h1 style={{ marginTop: 0, marginBottom: 16 }}>{recipe.title}</h1>
+
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 20 }}>
           <button
             className="btnSmall"
             onClick={handleToggleFavourite}
             disabled={favLoading}
+            style={{
+              background: isFavourited ? "#fff3e8" : "",
+              borderColor: isFavourited ? "#e07b2a" : "",
+              color: isFavourited ? "#e07b2a" : "",
+            }}
           >
             {favLoading ? "Updating..." : isFavourited ? "★ Saved" : "☆ Save"}
           </button>
@@ -320,31 +322,31 @@ export default function RecipeDetail() {
           )}
         </div>
 
-        <p style={{ margin: "0 0 8px 0" }}>
-          <strong>Dietary Tag:</strong> {recipe.dietary_tag || "N/A"}
-        </p>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div style={{ background: "#fff8f2", borderRadius: 10, padding: "10px 14px" }}>
+            <p style={{ margin: "0 0 4px 0", fontSize: "0.85rem", color: "#888" }}>Estimated Cost</p>
+            <p style={{ margin: 0, fontWeight: 700, fontSize: "1.1rem" }}>
+              {recipe.estimated_cost !== null ? `£${recipe.estimated_cost}` : "N/A"}
+            </p>
+          </div>
 
-        <p style={{ margin: "0 0 8px 0" }}>
-          <strong>Estimated Cost:</strong>{" "}
-          {recipe.estimated_cost !== null ? `£${recipe.estimated_cost}` : "N/A"}
-        </p>
-
-        <p style={{ margin: 0 }}>
-          <strong>Average Rating:</strong>{" "}
-          {avg
-            ? `${avg} / 5 (${reviews.length} review${reviews.length === 1 ? "" : "s"})`
-            : "No ratings yet"}
-        </p>
+          <div style={{ background: "#fff8f2", borderRadius: 10, padding: "10px 14px" }}>
+            <p style={{ margin: "0 0 4px 0", fontSize: "0.85rem", color: "#888" }}>Average Rating</p>
+            <p style={{ margin: 0, fontWeight: 700, fontSize: "1.1rem" }}>
+              {avg ? `${avg} / 5 (${reviews.length} review${reviews.length === 1 ? "" : "s"})` : "No ratings yet"}
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="card" style={{ marginBottom: 20 }}>
         <h2 style={{ marginTop: 0 }}>Ingredients</h2>
-        <p style={{ whiteSpace: "pre-line" }}>{recipe.ingredients}</p>
+        <p style={{ whiteSpace: "pre-line", lineHeight: 1.8 }}>{recipe.ingredients}</p>
       </div>
 
       <div className="card" style={{ marginBottom: 20 }}>
         <h2 style={{ marginTop: 0 }}>Instructions</h2>
-        <p style={{ whiteSpace: "pre-line" }}>{recipe.steps}</p>
+        <p style={{ whiteSpace: "pre-line", lineHeight: 1.8 }}>{recipe.steps}</p>
       </div>
 
       <div className="card">
@@ -354,11 +356,11 @@ export default function RecipeDetail() {
           <form onSubmit={handleAddReview} style={{ marginBottom: 24 }}>
             <label className="label">Rating</label>
             <select value={rating} onChange={(e) => setRating(e.target.value)}>
-              <option value={5}>5</option>
-              <option value={4}>4</option>
-              <option value={3}>3</option>
-              <option value={2}>2</option>
-              <option value={1}>1</option>
+              <option value={5}>5 - Excellent</option>
+              <option value={4}>4 - Good</option>
+              <option value={3}>3 - Average</option>
+              <option value={2}>2 - Poor</option>
+              <option value={1}>1 - Terrible</option>
             </select>
 
             <label className="label">Comment (optional)</label>
@@ -377,18 +379,29 @@ export default function RecipeDetail() {
             </div>
           </form>
         ) : (
-          <p>You must be logged in to leave a review.</p>
+          <p style={{ color: "#666" }}>
+            <Link to="/login" className="link">Login</Link> to leave a review.
+          </p>
         )}
 
         {reviews.length === 0 ? (
-          <p>No reviews yet.</p>
+          <p style={{ color: "#888" }}>No reviews yet. Be the first to review this recipe.</p>
         ) : (
           <div className="list">
             {reviews.map((r) => (
               <div className="listItem" key={r.id} style={{ display: "block" }}>
-                <p style={{ margin: "0 0 8px 0" }}>
-                  <strong>Rating:</strong> {r.rating} / 5
-                </p>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                  <span style={{
+                    background: "#fff1e6",
+                    color: "#e07b2a",
+                    padding: "2px 10px",
+                    borderRadius: 999,
+                    fontWeight: 700,
+                    fontSize: "0.9rem",
+                  }}>
+                    {r.rating} / 5
+                  </span>
+                </div>
                 <p style={{ margin: 0, color: "#555" }}>
                   {r.comment ? r.comment : "(No comment)"}
                 </p>
