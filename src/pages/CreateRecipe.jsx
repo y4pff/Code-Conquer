@@ -8,6 +8,8 @@ export default function CreateRecipe() {
   const [steps, setSteps] = useState("");
   const [dietaryTag, setDietaryTag] = useState("");
   const [estimatedCost, setEstimatedCost] = useState("");
+  const [imageFile, setImageFile] = useState(null);
+  const [videoUrl, setVideoUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -47,6 +49,27 @@ export default function CreateRecipe() {
       return;
     }
 
+    // upload image if one was selected
+    let imageUrl = null;
+    if (imageFile) {
+      const fileName = Date.now() + "_" + imageFile.name;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("recipe-images")
+        .upload(fileName, imageFile);
+
+      if (uploadError) {
+        setErrorMessage("Image upload failed: " + uploadError.message);
+        setLoading(false);
+        return;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from("recipe-images")
+        .getPublicUrl(fileName);
+
+      imageUrl = urlData.publicUrl;
+    }
+
     const { error } = await supabase.from("recipes").insert([
       {
         title,
@@ -55,6 +78,8 @@ export default function CreateRecipe() {
         dietary_tag: dietaryTag || null,
         estimated_cost: estimatedCost === "" ? null : Number(estimatedCost),
         user_id: user.id,
+        image_url: imageUrl,
+        video_url: videoUrl || null,
       },
     ]);
 
@@ -163,6 +188,28 @@ export default function CreateRecipe() {
             value={steps}
             onChange={(e) => setSteps(e.target.value)}
             required
+          />
+
+          <label className="label">Recipe Image (optional)</label>
+          <input
+            className="input"
+            type="file"
+            accept="image/*"
+            onChange={(e) => setImageFile(e.target.files[0])}
+          />
+          {imageFile && (
+            <p style={{ margin: "6px 0 0 0", fontSize: "0.9rem", color: "#666" }}>
+              Selected: {imageFile.name}
+            </p>
+          )}
+
+          <label className="label">Video URL (optional)</label>
+          <input
+            className="input"
+            type="text"
+            placeholder="Paste a YouTube link e.g. https://youtube.com/watch?v=..."
+            value={videoUrl}
+            onChange={(e) => setVideoUrl(e.target.value)}
           />
 
           <div style={{ marginTop: 16, display: "flex", gap: 12 }}>

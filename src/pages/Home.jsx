@@ -120,6 +120,35 @@ export default function Home() {
         <div className="recipeGrid">
           {recipes.map((r) => (
             <div className="recipeCard" key={r.id}>
+
+              {r.image_url ? (
+                <img
+                  src={r.image_url}
+                  alt={r.title}
+                  style={{
+                    width: "100%",
+                    height: 180,
+                    objectFit: "cover",
+                    borderRadius: 12,
+                    marginBottom: 12,
+                  }}
+                />
+              ) : (
+                <div style={{
+                  width: "100%",
+                  height: 180,
+                  borderRadius: 12,
+                  background: "#fff1e6",
+                  marginBottom: 12,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "2.5rem",
+                }}>
+                  🍽️
+                </div>
+              )}
+
               <div style={{ marginBottom: 12 }}>
                 <span className="badge">{r.dietary_tag || "No tag"}</span>
               </div>
