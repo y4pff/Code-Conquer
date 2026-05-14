@@ -22,11 +22,7 @@ cd recipe-platform
 npm install
 npm run dev
 
-Create a .env file:
-
-VITE_SUPABASE_URL=your_url
-VITE_SUPABASE_ANON_KEY=your_key
 
 Notes
 
-This project was built as part of a Computer Science coursework assignment. Further improvements and features may be added in the future.
+This project was built as part of a collaborative project. Further improvements and features may be added in the future.
